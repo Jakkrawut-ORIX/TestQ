@@ -4,37 +4,32 @@
  * แยกจาก business logic
  */
 
-import {
-  $, getVal, setVal, setText, setHTML, setDisplay,
-  showToast, fmt0, fmt2, fmt4, fmtNum,
+import { 
+  $, getVal, setVal, setText, setHTML, setDisplay, 
+  showToast, fmt0, fmt2, fmt4, fmtNum 
 } from './utils.js';
-import {
-  LABELS,
-  PAYMENT_METHODS,
-  PAYMENT_TIMINGS,
-  GUARANTOR_TYPES,
-} from './config.js';
+import { LABELS, PAYMENT_METHODS, GUARANTOR_TYPES } from './config.js';
 
 export class UIManager {
   constructor(calculator, storage) {
     this.calculator = calculator;
     this.storage = storage;
-    this.language = 'TH';
+    this.language = 'EN';
     this._prevTermUnit = 'years';
     this.recalcCallback = null;
   }
 
+  /**
+   * ตั้งค่า callback ที่จะเรียกเมื่อต้อง recalculate
+   */
   onRecalc(callback) {
     this.recalcCallback = callback;
   }
 
-  /** อ่านค่าทั้งหมดจากหน้า UI */
+  /**
+   * อ่านค่าทั้งหมดจาก inputs
+   */
   readInputs() {
-    const assetQtyEl = $('assetQty');
-    const assetQtyRaw = assetQtyEl
-      ? String(assetQtyEl.value || '').replace(/,/g, '').trim()
-      : '';
-
     return {
       gross: getVal('gross'),
       discount: getVal('discount'),
@@ -42,36 +37,39 @@ export class UIManager {
       vatPct: getVal('vatPct'),
       termUnit: getVal('termUnit') || 'years',
       termVal: getVal('termVal'),
-      downType: getVal('downType') || 'amount',
+      downType: getVal('downType'),
       downInput: getVal('downInput'),
-      balloonEnable: getVal('balloonEnable') || 'false',
-      balloonType: getVal('balloonType') || 'amount',
+      balloonEnable: getVal('balloonEnable'),
+      balloonType: getVal('balloonType'),
       balloonInput: getVal('balloonInput'),
-      mode: getVal('mode') || 'Flat',
-      flatRate: getVal('flatRate')/100,
+      mode: getVal('mode'),
+      flatRate: getVal('flatRate') / 100, // UI 3.39% -> Engine 0.0339
       irrTargetPct: getVal('irrTargetPct'),
-      commBaseChoice: getVal('commBaseChoice') || 'finance',
+      commBaseChoice: getVal('commBaseChoice'),
       commPct: getVal('commPct'),
       commExtra: getVal('commExtra'),
-      paymentMethod: getVal('paymentMethod') || 'transfer',
+      paymentMethod: getVal('paymentMethod'),
       paymentTiming: getVal('paymentTiming') || 'advance',
-      custName: getVal('custName') || '',
-      fromName: getVal('fromName') || '',
-      quotationNo: getVal('quotationNo') || '',
-      issueDate: getVal('issueDate') || '',
+      custName: getVal('custName'),
+      fromName: getVal('fromName'),
+      quotationNo: getVal('quotationNo'),
+      issueDate: getVal('issueDate'),
       validDays: getVal('validDays'),
-      assetName: getVal('assetName') || '',
-      assetColor: getVal('assetColor') || '',
-      assetQty: assetQtyRaw === '' ? '' : Math.max(0, parseInt(assetQtyRaw, 10) || 0),
+      assetName: getVal('assetName'),
+      assetColor: getVal('assetColor'),
+      assetQty: getVal('assetQty'),
       targetMonthlyInc: getVal('targetMonthlyInc'),
-      quoteLang: getVal('quoteLang') || 'TH',
+      quoteLang: getVal('quoteLang') || 'EN',
     };
   }
 
+  /**
+   * อัปเดต main results section
+   */
   updateResults(results) {
-    const {
+    const { 
       net, down, balloon, finance, finMinusBalloon, months,
-      interest, pmtRounded, commission, irr, tr,
+      interest, pmtRounded, commission, irr, tr
     } = results;
 
     setText('netPrice', fmt2(net));
@@ -83,19 +81,41 @@ export class UIManager {
     setText('totalInterest', fmt2(interest));
     setText('pmtInc', fmt0(pmtRounded));
     setText('commission', fmt2(commission));
-    setText('irr', Number.isFinite(irr) ? `${(irr * 100).toFixed(4)} %` : '—');
-    setText('trCustomer', Number.isFinite(tr) ? `${(tr * 100).toFixed(4)} %` : '—');
+    
+    // IRR & TR
+    if (irr !== null && isFinite(irr)) {
+      setText('irr', `${(irr * 100).toFixed(4)} %`);
+    } else {
+      setText('irr', '—');
+    }
+    
+    if (tr !== null && isFinite(tr)) {
+      setText('trCustomer', `${(tr * 100).toFixed(4)} %`);
+    } else {
+      setText('trCustomer', '—');
+    }
   }
 
+  /**
+   * อัปเดต hero payment display
+   */
   updateHeroPayment(results) {
-    setText('pmtRounded', fmt0(results.pmtRounded));
-    setText('months_hero', `${results.months} งวด`);
+    const { pmtRounded, months } = results;
+    setText('pmtRounded', fmt0(pmtRounded));
+    setText('months_hero', `${months} งวด`);
   }
 
+  /**
+   * อัปเดต OWS Working Sheet
+   */
   updateWorksheet(results) {
-    const {
-      netEx, net, downEx, down, finEx, finance,
-      pmtRoundedEx, pmtRounded, commEx, commission, rvEx, balloon,
+    const { 
+      netEx, net, 
+      downEx, down, 
+      finEx, finance, 
+      pmtEx, pmtRounded, 
+      commEx, commission, 
+      rvEx, down: rvInc 
     } = results;
 
     setText('ws_net_ex', fmt4(netEx));
@@ -104,327 +124,408 @@ export class UIManager {
     setText('ws_dep_inc', fmt2(down));
     setText('ws_fin_ex', fmt4(finEx));
     setText('ws_fin_inc', fmt2(finance));
-    setText('ws_pmt_ex', fmt4(pmtRoundedEx));
+    setText('ws_pmt_ex', fmt4(pmtEx));
     setText('ws_pmt_inc', fmt0(pmtRounded));
     setText('ws_comm_ex', fmt4(commEx));
     setText('ws_comm_inc', fmt2(commission));
     setText('ws_rv_ex', fmt4(rvEx));
-    setText('ws_rv_inc', fmt2(down + balloon));
+    setText('ws_rv_inc', fmt2(down + results.balloon));
   }
 
+  /**
+   * อัปเดต Quotation section
+   */
   updateQuotation(results) {
     const inputs = this.readInputs();
-    const {
-      net, down, balloon, months, pmtRounded, pmtRoundedEx,
-      pmtVAT, purchaseOption,
+    const { 
+      net, down, balloon, months, pmtRounded, pmtEx, pmtVAT,
+      purchaseOption 
     } = results;
-
-    const lang = inputs.quoteLang || 'TH';
-    const isTH = lang === 'TH';
-    const issueDisp = inputs.issueDate
-      ? inputs.issueDate.split('-').reverse().join('/')
+    
+    const custName = inputs.custName;
+    const fromName = inputs.fromName;
+    const quotationNo = inputs.quotationNo;
+    const issueDate = inputs.issueDate;
+    const validDays = inputs.validDays;
+    const assetName = inputs.assetName;
+    const assetColor = inputs.assetColor;
+    const assetQty = inputs.assetQty;
+    
+    // Issue date display
+    const issueDisp = issueDate 
+      ? issueDate.split('-').reverse().join('/')
       : '';
-
-    setText('q_to', inputs.custName);
-    setText('q_from', inputs.fromName);
-    setText('q_no', inputs.quotationNo || '');
+    
+    const lang = inputs.quoteLang || 'EN';
+    const labels = LABELS[lang] || LABELS.EN;
+    
+    // Fill header
+    setText('q_to', custName);
+    setText('q_from', fromName);
+    setText('q_no', quotationNo || '');
     setText('q_issue', issueDisp);
-    setText(
-      'q_expire',
-      issueDisp
-        ? `${inputs.validDays}${isTH ? ' วัน นับจากวันที่เสนอราคา' : ' days after the issue date'}`
-        : ''
-    );
-
-    setText('q_asset', inputs.assetName || '');
-    setText('q_color', inputs.assetColor || '');
+    
+    // Expiration date
+    if (issueDisp) {
+      const expTxt = lang === 'TH'
+        ? `${validDays} วัน หลังจากวันที่เสนอราคา`
+        : `${validDays} days after the issue date`;
+      setText('q_expire', expTxt);
+    } else {
+      setText('q_expire', '');
+    }
+    
+    // Asset info
+    const assetEl = $('q_asset');
+    if (assetEl) assetEl.textContent = assetName || '';
+    
+    const colorEl = $('q_color');
+    if (colorEl) colorEl.textContent = assetColor || '';
+    
+    // Prices
     setText('q_list', fmt2(inputs.gross));
     setText('q_deposit', fmt2(down));
     setText('q_term', String(months));
-    setText('q_pmt_ex', fmt2(pmtRoundedEx));
+    setText('q_pmt_ex', fmt2(pmtEx));
     setText('q_vat', fmt2(pmtVAT));
     setText('q_pmt_inc', fmt0(pmtRounded));
     setText('q_purchase', fmt2(purchaseOption));
-    setText('q_qty', inputs.assetQty === '' ? '' : String(inputs.assetQty));
-    setText('q_cust_sign', inputs.custName);
-
+    setText('q_qty', String(assetQty));
+    setText('q_cust_sign', custName);
+    
+    // Rate box
     setText('rb_v1', 'Flat Rate');
-    setText('rb_v2', this._getPaymentTimingLabel(inputs.paymentTiming, isTH));
-    setText('rb_v3', this._getPaymentLabel(inputs.paymentMethod, isTH));
-    setText('rb_v5', this._getGuarantorLabel(isTH));
-
-    this._updateConditionText(down, balloon, net, purchaseOption, isTH);
+    setText('rb_v2', this._getPaymentTimingLabel(inputs.paymentTiming, lang === 'TH'));
+    const guarantorLabel = this._getGuarantorLabel(lang === 'TH');
+    setText('rb_v5', guarantorLabel);
+    
+    const paymentLabel = this._getPaymentLabel(inputs.paymentMethod, lang === 'TH');
+    setText('rb_v3', paymentLabel);
+    
+    // Update condition text
+    this._updateConditionText(down, balloon, net, purchaseOption, lang === 'TH');
   }
 
+  /**
+   * อัปเดต condition text ใน quotation
+   */
   _updateConditionText(downBaht, balloonBaht, net, purchaseOption, isTH) {
     const hasDown = downBaht > 1e-10;
     const hasBalloon = balloonBaht > 1e-10;
     const diffEnd = hasBalloon ? Math.max(0, purchaseOption - downBaht) : 0;
+    
     const c1 = $('condition1');
-
     if (c1) {
       if (isTH) {
         if (hasBalloon) {
-          c1.innerHTML =
-            `ผู้เช่าตกลงชำระเงินมัดจำ <strong>${fmtNum(downBaht, 2)} บาท</strong> (รวม VAT)<br/>` +
-            `เงินมัดจำเป็นส่วนหนึ่งของราคาสิทธิซื้อ <strong>${fmtNum(purchaseOption, 2)} บาท</strong> ` +
-            `เมื่อสัญญาสิ้นสุด ผู้เช่าชำระส่วนต่าง <strong>${fmtNum(diffEnd, 2)} บาท</strong>`;
+          c1.innerHTML = 
+            `ผู้เช่าตกลงชำระเงินดาวน์ <strong>${fmtNum(downBaht, 2)} บาท</strong> (รวม VAT)<br/>` +
+            `เงินดาวน์เป็นส่วนหนึ่งของราคาสิทธิซื้อ <strong>${fmtNum(purchaseOption, 2)} บาท</strong> ` +
+            `เมื่อสัญญาสิ้นสุด ลูกค้าชำระส่วนต่าง <strong>${fmtNum(diffEnd, 2)} บาท</strong>`;
         } else if (hasDown) {
-          c1.innerHTML =
-            `ผู้เช่าตกลงชำระเงินมัดจำ <strong>${fmtNum(downBaht, 2)} บาท</strong> (รวม VAT) ` +
-            'เงินมัดจำจะหักเป็นราคาสิทธิซื้อโดยอัตโนมัติเมื่อสัญญาสิ้นสุด';
+          c1.innerHTML = 
+            `ผู้เช่าตกลงชำระเงินดาวน์ <strong>${fmtNum(downBaht, 2)} บาท</strong> (รวม VAT) ` +
+            `เงินดาวน์จะหักเป็นราคาสิทธิซื้อโดยอัตโนมัติเมื่อสัญญาสิ้นสุด`;
         } else {
-          c1.innerHTML =
-            `เมื่อสัญญาเช่าครบกำหนด ผู้เช่าต้องชำระราคาสิทธิซื้อ ` +
-            `<strong>${fmtNum(purchaseOption, 2)} บาท</strong> (รวม VAT)`;
+          c1.innerHTML = 
+            `เมื่อสัญญาเช่าครบกำหนด ผู้เช่าต้องชำระราคาสิทธิซื้อ <strong>${fmtNum(purchaseOption, 2)} บาท</strong> (รวม VAT)`;
         }
-      } else if (hasBalloon) {
-        c1.innerHTML =
-          `The Lessee shall pay a deposit of <strong>${fmtNum(downBaht, 2)} Baht</strong> (Inc. VAT).<br/>` +
-          `The deposit forms part of the purchase price of <strong>${fmtNum(purchaseOption, 2)} Baht</strong>. ` +
-          `At contract end, the Lessee shall pay the difference of <strong>${fmtNum(diffEnd, 2)} Baht</strong> (Inc. VAT).`;
-      } else if (hasDown) {
-        c1.innerHTML =
-          `The Lessee shall pay a deposit of <strong>${fmtNum(downBaht, 2)} Baht</strong> (Inc. VAT). ` +
-          'The deposit will automatically be applied toward the Purchase Price at contract expiry.';
       } else {
-        c1.innerHTML =
-          `Upon contract expiry, the Lessee shall pay a Purchase Option of ` +
-          `<strong>${fmtNum(purchaseOption, 2)} Baht</strong> (Inc. VAT) to the Lessor.`;
+        if (hasBalloon) {
+          c1.innerHTML = 
+            `Lessee shall pay <strong>${fmtNum(downBaht, 2)} Baht</strong> (Inc. VAT) as a deposit.<br/>` +
+            `Deposit is part of the purchase price of <strong>${fmtNum(purchaseOption, 2)} Baht</strong>. ` +
+            `At contract end, customer shall pay the difference: <strong>${fmtNum(diffEnd, 2)} Baht</strong> (Inc. VAT).`;
+        } else if (hasDown) {
+          c1.innerHTML = 
+            `Lessee shall pay <strong>${fmtNum(downBaht, 2)} Baht</strong> (Inc. VAT) as a deposit to Lessor. ` +
+            `The deposit will be applied automatically to Purchase Price when the contract expired.`;
+        } else {
+          c1.innerHTML = 
+            `Upon contract expiry, the Lessee shall pay a Purchase Option of <strong>${fmtNum(purchaseOption, 2)} Baht</strong> (Inc. VAT) to the Lessor.`;
+        }
       }
     }
-
+    
+    // Clause 3 - purchase option detail
     const q3 = $('q_clause3');
-    if (!q3) return;
-
-    q3.innerHTML = isTH
-      ? `ข้อเสนอนี้รวมสิทธิซื้อมูลค่า <strong>${fmt2(purchaseOption)} บาท</strong> (รวม VAT) ` +
-        'หากท่านไม่ประสงค์ซื้อเมื่อสิ้นสุดสัญญา:<div style="margin-top:3px;padding-left:4px;line-height:1.7;">' +
-        'ก. บริษัทฯ จะนำทรัพย์สินออกจำหน่ายผ่านการประมูล<br/>' +
-        'ข. หากราคาประมูลต่ำกว่าราคาสิทธิซื้อ ท่านตกลงชำระส่วนต่าง</div>'
-      : `This offer includes a purchase option of <strong>${fmt2(purchaseOption)} Baht</strong> (Inc. VAT). ` +
-        'If you choose not to purchase at the end of the lease period:<div style="margin-top:3px;padding-left:4px;line-height:1.7;">' +
-        'a. The vehicle will be sold via auction to a third party<br/>' +
-        'b. If the sale price is less than the purchase option price, you agree to pay the difference</div>';
+    if (q3) {
+      if (isTH) {
+        q3.innerHTML = 
+          `ข้อเสนอนี้รวมสิทธิซื้อมูลค่า <strong>${fmt2(purchaseOption)} บาท</strong> (รวม VAT) ` +
+          `หากท่านไม่ประสงค์ซื้อเมื่อสิ้นสุดสัญญา:<div style="margin-top:3px;padding-left:4px;line-height:1.7;">` +
+          `ก. บริษัทฯ จะนำทรัพย์สินออกจำหน่ายผ่านการประมูล<br/>` +
+          `ข. หากราคาประมูลต่ำกว่าราคาสิทธิซื้อ ท่านตกลงชำระส่วนต่าง</div>`;
+      } else {
+        q3.innerHTML = 
+          `This offer includes a purchase option of <strong>${fmt2(purchaseOption)} Baht</strong> (Inc. VAT). ` +
+          `If you choose not to purchase at the end of the lease period:<div style="margin-top:3px;padding-left:4px;line-height:1.7;">` +
+          `a. The vehicle will be sold via auction to a 3rd party<br/>` +
+          `b. If the sale price is less than the purchase option price, you agree to pay the difference</div>`;
+      }
+    }
   }
 
-  updateWarnings(warnings = []) {
+  /**
+   * Update validation warnings
+   */
+  updateWarnings(warnings) {
     const warnBox = $('policyWarnings');
     if (!warnBox) return;
+    
     warnBox.innerHTML = '';
-
-    warnings.forEach((warning) => {
+    
+    warnings.forEach(w => {
       const span = document.createElement('span');
-      span.className = `pill ${warning.level === 'error' ? 'err' : 'warn'}`;
-      span.textContent = `${warning.level === 'error' ? '⛔' : '⚠'} ${warning.message}`;
+      span.className = `pill ${w.level === 'error' ? 'err' : 'warn'}`;
+      
+      const icon = w.level === 'error' ? '⛔' : '⚠';
+      span.textContent = `${icon} ${w.message}`;
+      
       warnBox.appendChild(span);
     });
   }
 
+  /**
+   * Setup all event listeners
+   */
   setupEventListeners() {
-    this._prevTermUnit = getVal('termUnit') || 'years';
-
-    $('termUnit')?.addEventListener('change', (event) => {
-      const newUnit = event.target.value;
+    // Term unit change
+    $('termUnit')?.addEventListener('change', (e) => {
+      const newUnit = e.target.value;
       this._onTermUnitChange(this._prevTermUnit, newUnit);
       this._prevTermUnit = newUnit;
       this.recalcCallback?.();
     });
-
-    $('mode')?.addEventListener('change', (event) => {
-      const isIRR = event.target.value === 'IRR';
+    
+    // Mode toggle (Flat/IRR)
+    $('mode')?.addEventListener('change', (e) => {
+      const isIRR = e.target.value === 'IRR';
       setDisplay('irrRow', isIRR);
-      if ($('btnSolveIRR')) $('btnSolveIRR').disabled = !isIRR;
+      $('btnSolveIRR').disabled = !isIRR;
       this.recalcCallback?.();
     });
-
+    
+    // Balloon enable toggle
     $('balloonEnable')?.addEventListener('change', () => {
       this._toggleBalloonUI();
       this.recalcCallback?.();
     });
-
-    $('guar_none')?.addEventListener('change', (event) => {
-      if (event.target.checked) {
-        if ($('guar_personal')) $('guar_personal').checked = false;
-        if ($('guar_corporate')) $('guar_corporate').checked = false;
-      } else if (!$('guar_personal')?.checked && !$('guar_corporate')?.checked) {
-        event.target.checked = true;
+    
+    // Guarantor checkboxes
+    $('guar_none')?.addEventListener('change', (e) => {
+      if (e.target.checked) {
+        $('guar_personal').checked = false;
+        $('guar_corporate').checked = false;
+      } else {
+        if (!$('guar_personal').checked && !$('guar_corporate').checked) {
+          e.target.checked = true;
+        }
       }
       this.recalcCallback?.();
     });
-
-    [$('guar_personal'), $('guar_corporate')].forEach((element) => {
-      element?.addEventListener('change', (event) => {
-        if (event.target.checked && $('guar_none')) $('guar_none').checked = false;
-        if (!$('guar_personal')?.checked && !$('guar_corporate')?.checked && $('guar_none')) {
+    
+    [$('guar_personal'), $('guar_corporate')].forEach(el => {
+      el?.addEventListener('change', (e) => {
+        if (e.target.checked) {
+          $('guar_none').checked = false;
+        }
+        if (!$('guar_personal').checked && !$('guar_corporate').checked) {
           $('guar_none').checked = true;
         }
         this.recalcCallback?.();
       });
     });
-
-    $('quoteLang')?.addEventListener('change', (event) => {
-      this.language = event.target.value;
+    
+    // Language change
+    $('quoteLang')?.addEventListener('change', (e) => {
+      this.language = e.target.value;
       this._applyLanguage(this.language);
       this.recalcCallback?.();
     });
-
-    $('paymentTiming')?.addEventListener('change', () => {
-      this._updatePaymentTimingDisplay();
-      this.recalcCallback?.();
+    
+    // Solve IRR button
+    $('btnSolveIRR')?.addEventListener('click', () => {
+      this.recalcCallback?.('solveIRR');
     });
-
-    $('btnSolveIRR')?.addEventListener('click', () => this.recalcCallback?.('solveIRR'));
-    $('btnGoalSeek')?.addEventListener('click', () => this.recalcCallback?.('goalSeek'));
-
-    document.addEventListener('keydown', (event) => {
-      if (event.ctrlKey && event.key === 'Enter') {
-        event.preventDefault();
+    
+    // Goal seek button
+    $('btnGoalSeek')?.addEventListener('click', () => {
+      this.recalcCallback?.('goalSeek');
+    });
+    
+    // Ctrl+Enter for goal seek
+    document.addEventListener('keydown', (e) => {
+      if (e.ctrlKey && e.key === 'Enter') {
+        e.preventDefault();
         this.recalcCallback?.('goalSeek');
       }
     });
-
-    // Text/number inputs recalculate continuously. Selects are handled by change.
-    document.addEventListener('input', (event) => {
-      const element = event.target;
-      if (!['INPUT', 'TEXTAREA'].includes(element.tagName)) return;
-      if (['guar_none', 'guar_personal', 'guar_corporate'].includes(element.id)) return;
+    
+    // General input/change events (auto-recalc)
+    document.addEventListener('input', (e) => {
+      const el = e.target;
+      if (!['INPUT', 'SELECT'].includes(el.tagName)) return;
+      
+      // Skip termUnit (handled separately)
+      if (el.id === 'termUnit') return;
+      
       this.recalcCallback?.();
     });
-
-    // Selects that do not have a dedicated handler.
-    document.addEventListener('change', (event) => {
-      const element = event.target;
-      if (element.tagName !== 'SELECT') return;
-      if ([
-        'termUnit', 'mode', 'balloonEnable', 'quoteLang', 'paymentTiming',
-      ].includes(element.id)) return;
-      this.recalcCallback?.();
-    });
-
-    this._toggleBalloonUI();
-    this._applyLanguage(getVal('quoteLang') || 'TH');
   }
 
+  /**
+   * Toggle Balloon UI visibility
+   */
   _toggleBalloonUI() {
     const isOn = getVal('balloonEnable') === 'true';
     setDisplay('balloonFields', isOn);
     setDisplay('balloonTypeField', isOn);
   }
 
+  /**
+   * Handle term unit change (years ↔ months)
+   */
   _onTermUnitChange(oldUnit, newUnit) {
-    const value = getVal('termVal');
-    if (!value) return;
-
-    let next = value;
-    if (oldUnit === 'years' && newUnit === 'months') next = Math.round(value * 12);
-    if (oldUnit === 'months' && newUnit === 'years') next = Number((value / 12).toFixed(2));
-    setVal('termVal', String(next));
+    const v = getVal('termVal');
+    if (!v) return;
+    
+    let nv;
+    if (oldUnit === 'years' && newUnit === 'months') {
+      nv = Math.round(v * 12);
+    } else if (oldUnit === 'months' && newUnit === 'years') {
+      nv = parseFloat((v / 12).toFixed(2));
+    } else {
+      nv = v;
+    }
+    
+    setVal('termVal', String(nv));
   }
 
+  /**
+   * Apply language changes to all labels
+   */
   _applyLanguage(lang) {
-    const labels = LABELS[lang] || LABELS.TH;
+    const labels = LABELS[lang] || LABELS.EN;
     const isTH = lang === 'TH';
-    this.language = lang;
-
-    const textMap = {
-      q_co_name: labels.companyName,
-      q_doctype: labels.docType,
-      q_docsub: labels.subType,
-      q_hd_title: labels.headOffice,
-      q_hd_a1: labels.headAddr1,
-      q_hd_a2: labels.headAddr2,
-      q_hd_tel: labels.headTel,
-      q_eb_title: labels.easternBranch,
-      q_eb_a1: labels.easternAddr1,
-      q_eb_a2: labels.easternAddr2,
-      q_eb_tel: labels.easternTel,
-      lbl_qi_to: labels.toLabel,
-      lbl_qi_from: labels.fromLabel,
-      lbl_qi_qno: labels.quotationNoLabel,
-      lbl_qi_issue: labels.issueDateLabel,
-      lbl_qi_exp: labels.expirationDateLabel,
-      q_intro: labels.intro,
-      col_no: labels.col.no,
-      col_asset: labels.col.asset,
-      col_vat: labels.col.vat,
-      col_qty: labels.col.qty,
-      col_color: labels.col.color,
-      rb_k1: labels.interestRateType,
-      rb_k2: labels.frequency,
-      rb_k3: labels.paymentMethod,
-      rb_k4: labels.endOfContract,
-      rb_v4: labels.ownership,
-      rb_k5: labels.guarantor,
-      q_subject: labels.subject,
-      h_terms: labels.termsLabel,
-      h_details: labels.detailsLabel,
-      cond1_title: labels.clause1Title,
-      lbl_authsig: labels.yourSincerely,
-      q_sign_name: labels.signatureName,
-      q_sign_role: labels.signatureRole,
-      q_sign_confirm: labels.signatureConfirm,
-      lbl_customer: labels.customer,
-      lbl_date: labels.date,
-    };
-
-    Object.entries(textMap).forEach(([id, value]) => setText(id, value));
-
-    const htmlMap = {
-      col_list: labels.col.listPrice,
-      col_dep: labels.col.deposit,
-      col_term: labels.col.term,
-      col_pmt_ex: labels.col.paymentEx,
-      col_pmt_inc: labels.col.paymentInc,
-      col_purchase: labels.col.purchasePrice,
-      ol_terms_en: labels.terms.map((term) => `<li>${term}</li>`).join(''),
-      q_clause2: labels.clause2,
-    };
-
-    Object.entries(htmlMap).forEach(([id, value]) => setHTML(id, value));
-    this._updatePaymentTimingDisplay();
-    this._toggleFooterLanguage(isTH);
+    
+    // Quotation header
+    setText('q_co_name', labels.companyName);
+    setText('q_doctype', labels.docType);
+    setText('q_docsub', labels.subType);
+    
+    // Office info
+    setText('q_hd_title', labels.headOffice);
+    setText('q_hd_a1', labels.headAddr1);
+    setText('q_hd_a2', labels.headAddr2);
+    setText('q_hd_tel', labels.headTel);
+    setText('q_eb_title', labels.easternBranch);
+    setText('q_eb_a1', labels.easternAddr1);
+    setText('q_eb_a2', labels.easternAddr2);
+    setText('q_eb_tel', labels.easternTel);
+    
+    // Quotation info
+    setText('lbl_qi_to', labels.toLabel);
+    setText('lbl_qi_from', labels.fromLabel);
+    setText('lbl_qi_qno', labels.quotationNoLabel);
+    setText('lbl_qi_issue', labels.issueDateLabel);
+    setText('lbl_qi_exp', labels.expirationDateLabel);
+    
+    // Intro & table
+    setText('q_intro', labels.intro);
+    setText('col_no', labels.col.no);
+    setText('col_asset', labels.col.asset);
+    setHTML('col_list', labels.col.listPrice);
+    setHTML('col_dep', labels.col.deposit);
+    setHTML('col_term', labels.col.term);
+    setHTML('col_pmt_ex', labels.col.paymentEx);
+    setText('col_vat', labels.col.vat);
+    setHTML('col_pmt_inc', labels.col.paymentInc);
+    setHTML('col_purchase', labels.col.purchasePrice);
+    setText('col_qty', labels.col.qty);
+    setText('col_color', labels.col.color);
+    
+    // Rate box
+    setText('rb_k1', labels.interestRateType);
+    setText('rb_k2', labels.frequency);
+    setText('rb_k3', labels.paymentMethod);
+    setText('rb_v2', this._getPaymentTimingLabel(getVal('paymentTiming') || 'advance', isTH));
+    setText('rb_k4', labels.endOfContract);
+    setText('rb_v4', labels.ownership);
+    setText('rb_k5', labels.guarantor);
+    
+    // Subject & terms
+    setText('q_subject', labels.subject);
+    setText('h_terms', labels.termsLabel);
+    setText('h_details', labels.detailsLabel);
+    
+    const termsHtml = labels.terms
+      .map(t => `<li>${t}</li>`)
+      .join('');
+    setHTML('ol_terms_en', termsHtml);
+    
+    setText('cond1_title', labels.clause1Title);
+    setHTML('q_clause2', labels.clause2);
+    
+    // Signature
+    setText('lbl_authsig', labels.yourSincerely);
+    setText('q_sign_name', labels.signatureName);
+    setText('q_sign_role', labels.signatureRole);
+    setText('q_sign_confirm', labels.signatureConfirm);
+    setText('lbl_customer', labels.customer);
+    setText('lbl_date', labels.date);
   }
 
-  _updatePaymentTimingDisplay() {
-    const isTH = (getVal('quoteLang') || this.language || 'TH') === 'TH';
-    setText(
-      'rb_v2',
-      this._getPaymentTimingLabel(getVal('paymentTiming') || 'advance', isTH)
-    );
-  }
-
-  _toggleFooterLanguage(isTH) {
-    const footerEN = $('q_footer_content_en');
-    const footerTH = $('q_footer_content_th');
-    if (!footerEN || !footerTH) return;
-
-    footerEN.classList.toggle('hidden', isTH);
-    footerTH.classList.toggle('hidden', !isTH);
-  }
-
+  /**
+   * Helper: Get guarantor label
+   */
   _getGuarantorLabel(isTH) {
-    const key = isTH ? 'TH' : 'EN';
-    const selected = [];
-    if ($('guar_personal')?.checked) selected.push(GUARANTOR_TYPES.personal[key]);
-    if ($('guar_corporate')?.checked) selected.push(GUARANTOR_TYPES.corporate[key]);
-    return selected.length ? selected.join('\n') : GUARANTOR_TYPES.none[key];
+    const p = $('guar_personal')?.checked;
+    const c = $('guar_corporate')?.checked;
+    
+    if (!p && !c) return '-';
+    
+    const parts = [];
+    if (p) {
+      parts.push(isTH 
+        ? 'บุคคลธรรมดา (กรรมการบริษัท)' 
+        : 'Personal (Director)');
+    }
+    if (c) {
+      parts.push(isTH 
+        ? 'ค้ำประกันโดยนิติบุคคล' 
+        : 'Corporate Guarantee');
+    }
+    
+    return parts.join('\n');
   }
 
+  /**
+   * Helper: Get payment method label
+   */
   _getPaymentLabel(method, isTH) {
     const key = isTH ? 'TH' : 'EN';
     return PAYMENT_METHODS[method]?.[key] || PAYMENT_METHODS.transfer[key];
   }
 
+  /** Helper: Payment timing label */
   _getPaymentTimingLabel(timing, isTH) {
-    const key = isTH ? 'TH' : 'EN';
-    return PAYMENT_TIMINGS[timing]?.[key] || PAYMENT_TIMINGS.advance[key];
+    if (timing === 'advance') {
+      return isTH ? 'รายเดือน ชำระต้นงวด' : 'Monthly, Payment in Advance';
+    }
+    return isTH ? 'รายเดือน ชำระปลายงวด' : 'Monthly, Payment in Arrears';
   }
 
+  /**
+   * Show error toast
+   */
   showError(message) {
     showToast(message, 'error');
   }
 
+  /**
+   * Show success toast
+   */
   showSuccess(message) {
     showToast(message, 'success');
   }
