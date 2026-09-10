@@ -1,359 +1,451 @@
 /**
  * utils.js — Utility Functions
- * ฟังก์ชันช่วยสำหรับ DOM manipulation, formatting, calculations
- * ใช้ได้ทั่วทั้งแอป
+ * DOM, formatting, financial calculations และ file export helpers
  */
 
-/**
- * DOM Helpers
- */
+/* =========================================================
+   DOM HELPERS
+========================================================= */
+
 export const $ = (id) => document.getElementById(id);
 
 export const getVal = (id) => {
-  const el = $(id);
-  if (!el) return null;
-  
-  // ตรวจสอบว่าเป็น number input หรือมี data-num flag
-  const isNum = el.getAttribute?.('data-num') === '1' || el.type === 'number';
-  
-  if (isNum) {
-    const v = parseFloat((el.value || '').replace(/,/g, '').trim());
-    return isNaN(v) ? 0 : v;
+  const element = $(id);
+  if (!element) return null;
+
+  const isNumeric =
+    element.getAttribute?.('data-num') === '1' ||
+    element.type === 'number';
+
+  if (!isNumeric) return element.value || '';
+
+  const value = Number.parseFloat(
+    String(element.value || '').replace(/,/g, '').trim()
+  );
+  return Number.isFinite(value) ? value : 0;
+};
+
+export const setVal = (id, value) => {
+  const element = $(id);
+  if (!element) return;
+
+  element.value = value ?? '';
+
+  // หลัง setupNumericFormatting ช่องตัวเลขเป็น text และมี data-num="1"
+  if (element.getAttribute('data-num') === '1' && element.value !== '') {
+    element.value = formatWithComma(element.value);
   }
-  
-  return el.value || '';
 };
 
-export const setVal = (id, v) => {
-  const el = $(id);
-  if (el) el.value = v;
+export const setText = (id, value) => {
+  const element = $(id);
+  if (element) element.textContent = value ?? '';
 };
 
-export const setText = (id, v) => {
-  const el = $(id);
-  if (el) el.textContent = v;
+export const setHTML = (id, value) => {
+  const element = $(id);
+  if (element) element.innerHTML = value ?? '';
 };
 
-export const setHTML = (id, v) => {
-  const el = $(id);
-  if (el) el.innerHTML = v;
-};
-
-export const addClass = (id, className) => {
-  const el = $(id);
-  if (el) el.classList.add(className);
-};
-
-export const removeClass = (id, className) => {
-  const el = $(id);
-  if (el) el.classList.remove(className);
-};
-
-export const toggleClass = (id, className, force) => {
-  const el = $(id);
-  if (el) el.classList.toggle(className, force);
-};
+export const addClass = (id, className) => $(id)?.classList.add(className);
+export const removeClass = (id, className) => $(id)?.classList.remove(className);
+export const toggleClass = (id, className, force) =>
+  $(id)?.classList.toggle(className, force);
 
 export const setDisplay = (id, show = true) => {
-  const el = $(id);
-  if (el) el.style.display = show ? '' : 'none';
+  const element = $(id);
+  if (element) element.style.display = show ? '' : 'none';
 };
 
-/**
- * Toast/Notification
- */
-let _toastTimer = null;
-export const showToast = (msg, type = 'success') => {
-  const el = $('toast');
-  if (!el) return;
-  
-  el.textContent = msg;
-  el.className = `show ${type}`;
-  
-  clearTimeout(_toastTimer);
-  _toastTimer = setTimeout(() => {
-    el.className = '';
+/* =========================================================
+   TOAST
+========================================================= */
+
+let toastTimer = null;
+
+export const showToast = (message, type = 'success') => {
+  const element = $('toast');
+  if (!element) return;
+
+  element.textContent = message;
+  element.className = `show ${type}`;
+
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    element.className = '';
   }, 3800);
 };
 
-/**
- * Date Utilities
- */
+/* =========================================================
+   DATE
+========================================================= */
+
 export const todayIso = () => {
-  const d = new Date();
-  return new Date(d.getTime() - d.getTimezoneOffset() * 60000)
+  const date = new Date();
+  return new Date(date.getTime() - date.getTimezoneOffset() * 60000)
     .toISOString()
     .slice(0, 10);
 };
 
-export const addDays = (isoDateStr, days) => {
-  const d = new Date(isoDateStr);
-  d.setDate(d.getDate() + days);
-  return d.toISOString().slice(0, 10);
+export const addDays = (isoDate, days) => {
+  if (!isoDate) return '';
+  const [year, month, day] = isoDate.split('-').map(Number);
+  const date = new Date(year, month - 1, day);
+  date.setDate(date.getDate() + Number(days || 0));
+  return new Date(date.getTime() - date.getTimezoneOffset() * 60000)
+    .toISOString()
+    .slice(0, 10);
 };
 
 export const formatDateDisplay = (isoDate, separator = '/') => {
   if (!isoDate) return '';
-  // Convert YYYY-MM-DD to DD/MM/YYYY
   const parts = isoDate.split('-');
-  return [parts[2], parts[1], parts[0]].join(separator);
+  return parts.length === 3 ? [parts[2], parts[1], parts[0]].join(separator) : '';
 };
 
+/* =========================================================
+   NUMBER FORMATTING
+========================================================= */
+
+export const fmtNum = (value, decimals = 2) =>
+  Number.isFinite(Number(value))
+    ? Number(value).toLocaleString('th-TH', {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals,
+      })
+    : '—';
+
+export const fmt0 = (value) =>
+  Number.isFinite(Number(value))
+    ? Math.round(Number(value)).toLocaleString('th-TH')
+    : '—';
+
+export const fmt2 = (value) => fmtNum(value, 2);
+export const fmt4 = (value) => fmtNum(value, 4);
+
+export const unformat = (value) => String(value ?? '').replace(/,/g, '');
+
+export const parseNumber = (value) => {
+  const number = Number.parseFloat(unformat(value).trim());
+  return Number.isFinite(number) ? number : 0;
+};
+
+export const formatWithComma = (value) => {
+  if (value === null || value === undefined || value === '') return '';
+
+  let text = unformat(value).trim();
+  if (text === '.' || text === '-' || text === '-.') return text;
+
+  const number = Number(text);
+  if (!Number.isFinite(number)) return String(value);
+
+  const negative = text.startsWith('-') ? '-' : '';
+  text = text.replace(/^-/, '').replace(/^0+(?=\d)/, '');
+
+  const dotIndex = text.indexOf('.');
+  const integerPart = dotIndex >= 0 ? text.slice(0, dotIndex) : text;
+  const decimalPart = dotIndex >= 0 ? text.slice(dotIndex + 1) : null;
+  const formattedInteger = Number(integerPart || 0).toLocaleString('th-TH');
+
+  return `${negative}${formattedInteger}${decimalPart !== null ? `.${decimalPart}` : ''}`;
+};
+
+/* =========================================================
+   FINANCIAL RATE
+========================================================= */
+
 /**
- * Number Formatting
- * ใช้ Thai locale สำหรับการแสดงผล
+ * มูลค่าสมการ RATE
+ * type 0 = ชำระปลายงวด
+ * type 1 = ชำระต้นงวด
  */
-export const fmt0 = (v) => 
-  isFinite(v) ? Math.round(v).toLocaleString('th-TH') : '—';
+const rateEquation = (nper, pmt, pv, fv, type, r) => {
+  if (Math.abs(r) < 1e-10) {
+    // Limit เมื่อ rate เข้าใกล้ 0
+    return pv + pmt * nper + fv;
+  }
 
-export const fmt2 = (v) => 
-  isFinite(v) 
-    ? Number(v).toLocaleString('th-TH', { 
-        minimumFractionDigits: 2, 
-        maximumFractionDigits: 2 
-      })
-    : '—';
+  const power = Math.pow(1 + r, nper);
+  return pv * power + pmt * (1 + r * type) * (power - 1) / r + fv;
+};
 
-export const fmt4 = (v) => 
-  isFinite(v) 
-    ? Number(v).toLocaleString('th-TH', { 
-        minimumFractionDigits: 4, 
-        maximumFractionDigits: 4 
-      })
-    : '—';
+/** Derivative ที่ถูกต้องของ rateEquation */
+const rateDerivative = (nper, pmt, pv, fv, type, r) => {
+  if (Math.abs(r) < 1e-7) {
+    // Numerical derivative ปลอดภัยกว่าใกล้ศูนย์
+    const h = 1e-6;
+    return (
+      rateEquation(nper, pmt, pv, fv, type, r + h) -
+      rateEquation(nper, pmt, pv, fv, type, r - h)
+    ) / (2 * h);
+  }
 
-export const fmtNum = (v, d = 2) => 
-  isFinite(v) 
-    ? Number(v).toLocaleString('th-TH', { 
-        minimumFractionDigits: d, 
-        maximumFractionDigits: d 
-      })
-    : '—';
+  const power = Math.pow(1 + r, nper);
+  const powerPrev = Math.pow(1 + r, nper - 1);
+  const annuity = (power - 1) / r;
+  const annuityDerivative =
+    (nper * powerPrev * r - (power - 1)) / (r * r);
 
-/**
- * String Formatting
- * สำหรับ input display
- */
-export const formatWithComma = (str) => {
-  if (!str) return '';
-  
-  let s = String(str)
-    .replace(/,/g, '')
-    .trim()
-    .replace(/^0+(?=[1-9])/, '');
-  
-  if (s === '.' || s === '-') return s;
-  if (isNaN(s)) return str;
-  
-  const neg = s.startsWith('-') ? '-' : '';
-  const body = s.replace(/^-/, '');
-  const [int, frac] = body.split('.');
-  
   return (
-    neg + 
-    (int ? Number(int).toLocaleString('th-TH') : '0') + 
-    (frac != null ? '.' + frac : '')
+    pv * nper * powerPrev +
+    pmt * (type * annuity + (1 + r * type) * annuityDerivative)
   );
 };
 
-export const unformat = (str) => 
-  String(str || '').replace(/,/g, '');
-
-export const parseNumber = (str) => {
-  const cleaned = unformat(str).trim();
-  const num = parseFloat(cleaned);
-  return isNaN(num) ? 0 : num;
-};
-
 /**
- * Calculations — IRR/RATE Solver
- * ใช้ Newton's Method หา interest rate
+ * RATE แบบเดียวกับ Excel โดยคืนค่าอัตราต่องวด
+ * ใช้ Newton-Raphson ก่อน และ fallback เป็น bracket/bisection
  */
-export const rate = (nper, pmt, pv, fv = 0, type = 0, guess = 0.01) => {
-  const MAX = 100;
-  const tol = 1e-12;
-  let r = guess;
-  
-  // ถ้าไม่มี payment หรือ future value
-  if (Math.abs(pmt) < 1e-18 && Math.abs(fv) < 1e-18) return 0;
-  
-  for (let i = 0; i < MAX; i++) {
-    const t = Math.pow(1 + r, nper);
-    
-    // PV formula: pv*t + pmt*(1+r*type)*(t-1)/r + fv = 0
-    const f = pv * t + pmt * (1 + r * type) * (t - 1) / r + fv;
-    const df = pv * nper * Math.pow(1 + r, nper - 1) + 
-               pmt * (1 + r * type) * ((t - 1) / r + nper * Math.pow(1 + r, nper - 1) / r - (t - 1) / (r * r));
-    
-    const nr = r - f / df;
-    
-    if (!isFinite(nr)) break;
-    if (Math.abs(nr - r) < tol) {
-      r = nr;
-      break;
-    }
-    
-    r = nr;
+export const rate = (
+  nper,
+  pmt,
+  pv,
+  fv = 0,
+  type = 0,
+  guess = 0.01
+) => {
+  nper = Number(nper);
+  pmt = Number(pmt);
+  pv = Number(pv);
+  fv = Number(fv);
+  type = Number(type) === 1 ? 1 : 0;
+
+  if (!(nper > 0) || ![pmt, pv, fv].every(Number.isFinite)) return NaN;
+  if (Math.abs(pmt) < 1e-18 && Math.abs(fv) < 1e-18) return NaN;
+
+  let current = Number.isFinite(Number(guess)) ? Number(guess) : 0.01;
+  current = Math.max(-0.999999, current);
+
+  // Newton-Raphson
+  for (let iteration = 0; iteration < 100; iteration++) {
+    const value = rateEquation(nper, pmt, pv, fv, type, current);
+    const derivative = rateDerivative(nper, pmt, pv, fv, type, current);
+
+    if (!Number.isFinite(value) || !Number.isFinite(derivative)) break;
+    if (Math.abs(value) < 1e-10) return current;
+    if (Math.abs(derivative) < 1e-14) break;
+
+    const next = current - value / derivative;
+    if (!Number.isFinite(next) || next <= -1) break;
+    if (Math.abs(next - current) < 1e-12) return next;
+
+    current = next;
   }
-  
-  return r;
+
+  // Fallback: หา bracket ตั้งแต่เกือบ -100% ถึงอัตราสูง
+  const points = [
+    -0.9999, -0.99, -0.9, -0.75, -0.5, -0.25, -0.1, -0.05,
+    -0.01, -0.001, 0, 0.001, 0.005, 0.01, 0.02, 0.05,
+    0.1, 0.2, 0.5, 1, 2, 5, 10,
+  ];
+
+  let left = points[0];
+  let leftValue = rateEquation(nper, pmt, pv, fv, type, left);
+
+  for (let index = 1; index < points.length; index++) {
+    const right = points[index];
+    const rightValue = rateEquation(nper, pmt, pv, fv, type, right);
+
+    if (!Number.isFinite(leftValue) || !Number.isFinite(rightValue)) {
+      left = right;
+      leftValue = rightValue;
+      continue;
+    }
+
+    if (Math.abs(leftValue) < 1e-10) return left;
+    if (Math.abs(rightValue) < 1e-10) return right;
+
+    if (leftValue * rightValue < 0) {
+      let a = left;
+      let b = right;
+      let fa = leftValue;
+
+      for (let iteration = 0; iteration < 200; iteration++) {
+        const mid = (a + b) / 2;
+        const fm = rateEquation(nper, pmt, pv, fv, type, mid);
+
+        if (!Number.isFinite(fm)) return NaN;
+        if (Math.abs(fm) < 1e-10 || Math.abs(b - a) < 1e-12) return mid;
+
+        if (fa * fm <= 0) {
+          b = mid;
+        } else {
+          a = mid;
+          fa = fm;
+        }
+      }
+
+      return (a + b) / 2;
+    }
+
+    left = right;
+    leftValue = rightValue;
+  }
+
+  return NaN;
 };
 
-/**
- * Binary Search
- * สำหรับ goal seek, IRR solving
- */
-export const binarySearch = (fn, target, lo, hi, maxIter = 80, tol = 1e-7) => {
-  let a = lo;
-  let b = hi;
-  let valA = fn(a);
-  
-  // ค้นหาช่วงที่มี sign change
-  for (let i = 0; i < maxIter; i++) {
-    const mid = (a + b) / 2;
-    const valM = fn(mid);
-    
-    if (!isFinite(valM)) break;
-    
-    if ((valA - target) * (valM - target) <= 0) {
-      b = mid;
+/* =========================================================
+   BINARY SEARCH
+========================================================= */
+
+/** Binary search สำหรับฟังก์ชัน monotonic */
+export const binarySearch = (
+  fn,
+  target,
+  lo,
+  hi,
+  maxIter = 80,
+  tolerance = 1e-7
+) => {
+  let left = Number(lo);
+  let right = Number(hi);
+  const targetValue = Number(target);
+  let leftValue = fn(left);
+  let rightValue = fn(right);
+
+  if (![leftValue, rightValue, targetValue].every(Number.isFinite)) return NaN;
+
+  const increasing = rightValue >= leftValue;
+
+  // ถ้า target อยู่นอกช่วง ให้คืนขอบที่ใกล้ที่สุด
+  if (increasing && targetValue <= leftValue) return left;
+  if (increasing && targetValue >= rightValue) return right;
+  if (!increasing && targetValue >= leftValue) return left;
+  if (!increasing && targetValue <= rightValue) return right;
+
+  for (let iteration = 0; iteration < maxIter; iteration++) {
+    const mid = (left + right) / 2;
+    const value = fn(mid);
+    if (!Number.isFinite(value)) return NaN;
+
+    if (Math.abs(value - targetValue) < tolerance || Math.abs(right - left) < tolerance) {
+      return mid;
+    }
+
+    if ((increasing && value < targetValue) || (!increasing && value > targetValue)) {
+      left = mid;
+      leftValue = value;
     } else {
-      a = mid;
-      valA = valM;
+      right = mid;
+      rightValue = value;
     }
   }
-  
-  // Refinement
-  a = lo;
-  b = hi;
-  valA = fn(a);
-  
-  for (let j = 0; j < 120; j++) {
-    const m = (a + b) / 2;
-    const valM = fn(m);
-    
-    if (!isFinite(valM)) break;
-    
-    if ((valA - target) * (valM - target) <= 0) {
-      b = m;
-    } else {
-      a = m;
-      valA = valM;
-    }
-    
-    if (Math.abs(b - a) < tol) break;
-  }
-  
-  return (a + b) / 2;
+
+  return (left + right) / 2;
 };
 
-/**
- * Input Formatting Setup
- * ทำให้ number inputs แสดงแบบ formatted
- */
+/* =========================================================
+   INPUT FORMATTING
+========================================================= */
+
 export const setupNumericFormatting = () => {
-  document.querySelectorAll('input[type="number"]').forEach((el) => {
-    el.setAttribute('data-num', '1');
-    el._formatted = true;
-    
-    const savedValue = el.value;
-    el.type = 'text';
-    el.setAttribute('inputmode', el.getAttribute('inputmode') || 'decimal');
-    el.value = savedValue;
-    
-    // Visual feedback
-    if (!el.readOnly && !el.disabled) {
-      el.classList.add('editable');
-      el.addEventListener('focus', () => el.classList.add('editing'));
-      el.addEventListener('blur', () => el.classList.remove('editing'));
+  document.querySelectorAll('input[type="number"]').forEach((element) => {
+    if (element.getAttribute('data-num') === '1') return;
+
+    element.setAttribute('data-num', '1');
+    const savedValue = element.value;
+    element.type = 'text';
+    element.setAttribute('inputmode', element.getAttribute('inputmode') || 'decimal');
+    element.value = savedValue ? formatWithComma(savedValue) : '';
+
+    if (!element.readOnly && !element.disabled) {
+      element.classList.add('editable');
+      element.addEventListener('focus', () => element.classList.add('editing'));
+      element.addEventListener('blur', () => element.classList.remove('editing'));
     }
-    
-    // Focus: show unformatted
-    el.addEventListener('focus', () => {
-      el.value = unformat(el.value);
+
+    element.addEventListener('focus', () => {
+      element.value = unformat(element.value);
       setTimeout(() => {
         try {
-          el.setSelectionRange(el.value.length, el.value.length);
-        } catch (e) {}
+          element.setSelectionRange(element.value.length, element.value.length);
+        } catch (_) {
+          // Input type or browser may not support selection range.
+        }
       }, 0);
     });
-    
-    // Input: filter characters
-    el.addEventListener('input', () => {
-      el.value = el.value.replace(/[^0-9,.\-]/g, '');
+
+    element.addEventListener('input', () => {
+      element.value = element.value.replace(/[^0-9.\-]/g, '');
+
+      // อนุญาตเครื่องหมายลบเฉพาะตัวแรก และจุดทศนิยมเพียงจุดเดียว
+      element.value = element.value
+        .replace(/(?!^)-/g, '')
+        .replace(/(\..*)\./g, '$1');
     });
-    
-    // Blur: format display
-    el.addEventListener('blur', () => {
-      el.value = formatWithComma(el.value);
+
+    element.addEventListener('blur', () => {
+      element.value = formatWithComma(element.value);
     });
-    
-    // Initial format
-    if (el.value) {
-      el.value = formatWithComma(el.value);
-    }
   });
-  
-  // Format select inputs
-  document.querySelectorAll('select').forEach((sel) => {
-    if (!sel.disabled && !sel.classList.contains('term-unit-sel')) {
-      sel.classList.add('editable');
-      sel.addEventListener('focus', () => sel.classList.add('editing'));
-      sel.addEventListener('blur', () => sel.classList.remove('editing'));
-    }
+
+  document.querySelectorAll('select').forEach((element) => {
+    if (element.disabled || element.classList.contains('term-unit-sel')) return;
+    element.classList.add('editable');
+    element.addEventListener('focus', () => element.classList.add('editing'));
+    element.addEventListener('blur', () => element.classList.remove('editing'));
   });
+
+  // ป้องกัน mouse wheel เปลี่ยนค่าขณะ focus
+  document.addEventListener(
+    'wheel',
+    () => {
+      if (document.activeElement?.getAttribute?.('data-num') === '1') {
+        document.activeElement.blur();
+      }
+    },
+    { passive: true }
+  );
 };
 
-/**
- * CSV/Excel Export
- */
+/* =========================================================
+   FILE EXPORT
+========================================================= */
+
+const downloadBlob = (blob, filename) => {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 0);
+};
+
 export const exportAsCSV = (data, filename = 'export.csv') => {
-  const csv = data
-    .map(row => row.map(cell => `"${cell}"`).join(','))
-    .join('\n');
-  
-  const blob = new Blob([csv], { type: 'text/csv' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(a.href);
+  const escapeCell = (cell) => `"${String(cell ?? '').replace(/"/g, '""')}"`;
+  const csv = data.map((row) => row.map(escapeCell).join(',')).join('\r\n');
+  downloadBlob(new Blob(['\uFEFF', csv], { type: 'text/csv;charset=utf-8' }), filename);
 };
 
-/**
- * JSON Export/Import
- */
 export const exportAsJSON = (data, filename = 'export.json') => {
-  const json = JSON.stringify(data, null, 2);
-  const blob = new Blob([json], { type: 'application/json' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(a.href);
+  downloadBlob(
+    new Blob([JSON.stringify(data, null, 2)], { type: 'application/json;charset=utf-8' }),
+    filename
+  );
 };
 
-/**
- * Validation
- */
+/* =========================================================
+   VALIDATION AND MATH
+========================================================= */
+
 export const isValidNumber = (value) => {
-  const num = parseNumber(value);
-  return isFinite(num) && num >= 0;
+  const number = parseNumber(value);
+  return Number.isFinite(number) && number >= 0;
 };
 
-export const isValidDate = (isoDateStr) => {
-  if (!isoDateStr) return false;
-  const d = new Date(isoDateStr);
-  return d instanceof Date && !isNaN(d);
+export const isValidDate = (isoDate) => {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(isoDate || ''))) return false;
+  const date = new Date(`${isoDate}T00:00:00`);
+  return Number.isFinite(date.getTime());
 };
 
-/**
- * Math Helpers
- */
-export const clamp = (value, min, max) => 
+export const clamp = (value, min, max) =>
   Math.max(min, Math.min(max, value));
 
 export const round = (value, decimals = 0) => {
-  const factor = Math.pow(10, decimals);
-  return Math.round(value * factor) / factor;
+  const factor = 10 ** decimals;
+  return Math.round((Number(value) + Number.EPSILON) * factor) / factor;
 };
