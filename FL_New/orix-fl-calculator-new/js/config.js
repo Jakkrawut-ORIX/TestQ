@@ -1,0 +1,4 @@
+export const DEFAULT_STATE={version:1,document:{customerName:'',marketerName:'',quotationNo:'',issueDate:'',validDays:30},asset:{name:'',color:'',quantity:1},pricing:{grossPriceIncVat:0,discountIncVat:0,optionIncVat:0,vatPct:7},contract:{termMonths:60,paymentTiming:'arrears'},down:{type:'percent',value:20},balloon:{enabled:true,type:'percent',value:20},calculation:{mode:'IRR',flatRatePct:0,irrTargetPct:5.75},commission:{base:'interest',percent:8,extraAmount:5000},conditions:{paymentMethod:'transfer'},ui:{quoteLanguage:'TH'}};
+export const PURCHASE_OPTION_DEFAULT=1070;
+export const FLAT_RATE_MAX_PCT=40;
+export const PAYMENT_METHODS={transfer:{TH:'โอนเงินผ่านธนาคาร',EN:'Bank Transfer'},cheque_all:{TH:'เช็คลงวันที่ล่วงหน้าตลอดสัญญา',EN:'Post Date Cheque - All Contract'},cheque_12:{TH:'เช็คลงวันที่ล่วงหน้า ต่ออายุทุก 12 เดือน',EN:'Post Date Cheque - 12M Roll Over'}};

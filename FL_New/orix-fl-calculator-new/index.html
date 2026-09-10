@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ORIX Financial Lease Calculator</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div id="toast" class="toast"></div>
+<header class="topbar no-print">
+  <div><h1>Financial <span>Lease</span> Calculator</h1><p>Thai ORIX Leasing Co., Ltd.</p></div>
+  <div class="badge">New Engine v1.0</div>
+</header>
+
+<main class="app">
+  <section class="workspace no-print">
+    <div class="inputs">
+      <article class="card">
+        <h2>ข้อมูลลูกค้าและทรัพย์สิน</h2>
+        <div class="grid two">
+          <label>ชื่อลูกค้า<input id="customerName"></label>
+          <label>ผู้เสนอราคา<input id="marketerName"></label>
+          <label>เลขที่ใบเสนอราคา<input id="quotationNo"></label>
+          <label>วันที่เสนอราคา<input id="issueDate" type="date"></label>
+          <label>รุ่นรถ<input id="assetName"></label>
+          <label>สี<input id="assetColor"></label>
+          <label>จำนวน<input id="quantity" type="number" min="1" value="1"></label>
+          <label>อายุใบเสนอราคา (วัน)<input id="validDays" type="number" min="0" value="30"></label>
+        </div>
+      </article>
+
+      <article class="card">
+        <h2>ราคาและเงื่อนไขสัญญา</h2>
+        <div class="grid three">
+          <label>ราคารถ รวม VAT<input id="grossPriceIncVat" type="number" min="0"></label>
+          <label>ส่วนลด<input id="discountIncVat" type="number" min="0" value="0"></label>
+          <label>Option<input id="optionIncVat" type="number" min="0" value="0"></label>
+          <label>VAT (%)<input id="vatPct" type="number" min="0" value="7"></label>
+          <label>จำนวนงวด (เดือน)<input id="termMonths" type="number" min="1" value="60"></label>
+          <label>เทอมชำระ<select id="paymentTiming"><option value="arrears">ปลายงวด</option><option value="advance">ต้นงวด</option></select></label>
+        </div>
+        <div class="divider"></div>
+        <div class="grid two">
+          <fieldset><legend>เงินดาวน์</legend><div class="inline"><select id="downType"><option value="percent">%</option><option value="amount">บาท</option></select><input id="downValue" type="number" min="0" value="20"></div></fieldset>
+          <fieldset><legend>Balloon</legend><div class="inline"><select id="balloonEnabled"><option value="true">มี</option><option value="false">ไม่มี</option></select><select id="balloonType"><option value="percent">%</option><option value="amount">บาท</option></select><input id="balloonValue" type="number" min="0" value="20"></div></fieldset>
+        </div>
+      </article>
+
+      <article class="card">
+        <h2>โหมดคำนวณและ Commission</h2>
+        <div class="grid three">
+          <label>โหมด<select id="calculationMode"><option value="IRR">IRR Target</option><option value="Flat">Flat Rate</option></select></label>
+          <label>Flat Rate ภายใน (%)<input id="flatRatePct" type="number" step="0.000001"></label>
+          <label>IRR Target (%)<input id="irrTargetPct" type="number" step="0.0001" value="5.75"></label>
+          <label>ฐานค่าคอม<select id="commissionBase"><option value="interest">ดอกเบี้ย</option><option value="finance">ยอดจัด</option></select></label>
+          <label>ค่าคอม (%)<input id="commissionPct" type="number" min="0" value="8"></label>
+          <label>Extra ค่าคอม<input id="commissionExtra" type="number" min="0" value="5000"></label>
+          <label>วิธีชำระ<select id="paymentMethod"><option value="transfer">Bank Transfer</option><option value="cheque_all">Post Date Cheque - All Contract</option><option value="cheque_12">Post Date Cheque - 12M Roll Over</option></select></label>
+          <label>ภาษาใบเสนอราคา<select id="quoteLanguage"><option value="TH">ไทย</option><option value="EN">English</option></select></label>
+        </div>
+        <div class="actions">
+          <button id="solveIrr" class="primary">คำนวณ Flat จาก IRR</button>
+          <button id="reset">รีเซ็ต</button>
+          <button id="exportExcel">Export Excel</button>
+          <button id="printQuote">พิมพ์ใบเสนอราคา</button>
+        </div>
+        <div id="warnings" class="warnings"></div>
+      </article>
+    </div>
+
+    <aside class="results">
+      <div class="hero"><small>ค่างวดต่อเดือน รวม VAT</small><strong id="monthlyRounded">-</strong><span id="paymentCaption">-</span></div>
+      <article class="card"><h2>ผลการคำนวณ</h2><div id="resultList" class="result-list"></div></article>
+      <article class="card"><h2>OWS Working Sheet</h2><table id="owsTable"><thead><tr><th>รายการ</th><th>Ex. VAT</th><th>Inc. VAT</th></tr></thead><tbody></tbody></table></article>
+    </aside>
+  </section>
+
+  <section id="quotation" class="quotation">
+    <header><div><h2 id="qCompany">บริษัท ไทยโอริกซ์ลีสซิ่ง จำกัด</h2><p>555 อาคาร รสา ทาวเวอร์ 2 ถนนพหลโยธิน จตุจักร กรุงเทพฯ 10900</p></div><div class="q-title" id="qTitle">ใบเสนอราคา</div></header>
+    <div class="q-info"><div><b id="qToLabel">เรียน:</b> <span id="qCustomer"></span></div><div><b id="qFromLabel">จาก:</b> <span id="qMarketer"></span></div><div><b id="qNoLabel">เลขที่:</b> <span id="qNo"></span><br><b id="qDateLabel">วันที่:</b> <span id="qDate"></span></div></div>
+    <p id="qIntro">บริษัทฯ ขอเสนอเงื่อนไขการเช่าดังต่อไปนี้</p>
+    <table class="q-table"><thead><tr><th id="qhAsset">ทรัพย์สิน</th><th id="qhList">ราคารถ</th><th id="qhDeposit">เงินมัดจำ</th><th id="qhTerm">งวด</th><th id="qhPayment">ค่าเช่ารายเดือน</th><th id="qhPurchase">ราคาซื้อสิทธิ์</th></tr></thead><tbody><tr><td id="qAsset"></td><td id="qList"></td><td id="qDeposit"></td><td id="qTerm"></td><td id="qPayment"></td><td id="qPurchase"></td></tr></tbody></table>
+    <div class="q-conditions"><p><b id="qTimingLabel">เงื่อนไขการชำระ:</b> <span id="qTiming"></span></p><p><b id="qMethodLabel">วิธีชำระ:</b> <span id="qMethod"></span></p><p id="qPurchaseText"></p></div>
+    <div class="q-sign"><div>ขอแสดงความนับถือ<br><br><br>_________________________<br>ผู้มีอำนาจลงนาม</div><div>ลูกค้ายอมรับข้อเสนอ<br><br><br>_________________________<br><span id="qCustomerSign"></span></div></div>
+  </section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+<script type="module" src="js/app.js"></script>
+</body>
+</html>

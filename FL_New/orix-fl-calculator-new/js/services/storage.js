@@ -1,0 +1,1 @@
+const KEY='orix-fl-calculator-new-v1';export const Storage={save(state){localStorage.setItem(KEY,JSON.stringify(state))},load(){try{return JSON.parse(localStorage.getItem(KEY))}catch{return null}},clear(){localStorage.removeItem(KEY)}};
