@@ -1,0 +1,1335 @@
+:root {
+  --blue:#01478c; --blue-mid:#0158a8; --blue-dim:#e8f0f9; --blue-soft:#c8ddf5;
+  --bg:#eaecf0; --surface:#ffffff; --surface2:#f4f6fa; --surface3:#f7f9fc;
+  --border:#dde2ea; --border2:#c8d0dc;
+  --txt:#0d1b2e; --muted:#6b7585; --muted2:#475264;
+  --green:#22a37d; --green-dim:#e6f5f0; --amber:#e8a020; --amber-dim:#fef3e2;
+  --red:#c0021a; --red-dim:#fde8eb; --purple:#6d28d9;
+  --font:Calibri,Arial,sans-serif;
+  --mono:Calibri,Consolas,monospace;
+  --rad:10px; --rad-sm:6px;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.07),0 1px 2px rgba(0,0,0,.04);
+  --shadow:0 2px 8px rgba(0,0,0,.08),0 1px 3px rgba(0,0,0,.04);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{background:var(--bg);color:var(--txt);font-family:var(--font);font-size:14px;line-height:1.6;min-height:100vh;}
+.app{max-width:1220px;margin:0 auto;padding:24px 18px 100px;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:10px;padding-bottom:16px;border-bottom:1px solid var(--border);}
+.ph-left h1{font-size:21px;font-weight:700;letter-spacing:-0.3px;color:var(--txt);line-height:1.2;}
+.ph-left h1 span{color:var(--blue);}
+.ph-left p{color:var(--muted);font-size:12px;margin-top:3px;}
+.ph-badge{display:inline-flex;align-items:center;gap:6px;background:var(--blue-dim);color:var(--blue);font-size:11px;font-weight:600;padding:5px 10px;border-radius:20px;border:1px solid var(--blue-soft);white-space:nowrap;flex-shrink:0;}
+.grid-main{display:grid;grid-template-columns:1fr 360px;gap:16px;}
+@media(max-width:920px){.grid-main{grid-template-columns:1fr;}}
+
+/* ─── Card ─── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rad);padding:0;box-shadow:var(--shadow-sm);overflow:hidden;}
+.card+.card{margin-top:10px;}
+.card-hdr{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 14px;
+  background:var(--surface2);
+  border-bottom:1px solid var(--border);
+  font-size:10px;text-transform:uppercase;letter-spacing:1.1px;color:var(--muted);font-weight:700;
+}
+.card-hdr .ch-icon{
+  width:22px;height:22px;border-radius:6px;
+  display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;
+}
+.ch-green{background:#d4f0e7;color:var(--green);}
+.ch-blue{background:#d8e8f6;color:var(--blue);}
+.ch-amber{background:#fdeec7;color:#a06000;}
+.ch-purple{background:#ede8fb;color:var(--purple);}
+.ch-slate{background:#e4e7ed;color:#445;}
+.card-body{padding:12px 14px;}
+.card-sect{padding:10px 14px;border-bottom:1px solid var(--border);}
+.card-sect:last-child{border-bottom:none;}
+
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
+.form-row.c3{grid-template-columns:1fr 1fr 1fr;}
+.form-row.c1{grid-template-columns:1fr;}
+.form-row.last{margin-bottom:0;}
+.field{display:flex;flex-direction:column;gap:3px;}
+.field label{font-size:10.5px;color:var(--muted2);font-weight:600;letter-spacing:.3px;display:flex;align-items:center;gap:5px;}
+.field label .hint{color:var(--muted);font-weight:400;}
+.field input,.field select{
+  background:var(--surface);color:var(--txt);border:1px solid var(--border);
+  border-radius:var(--rad-sm);padding:7px 10px;font-size:13px;font-family:var(--font);
+  transition:border-color .15s,box-shadow .15s,background .15s;outline:none;width:100%;
+}
+.field input:hover,.field select:hover{border-color:var(--border2);}
+.field input:focus,.field select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(1,71,140,.10);background:#fff;}
+.field input[readonly]{color:#98a2b3;background:#f9fafb;cursor:default;}
+.field select{cursor:pointer;}
+.field.mono input{font-family:var(--mono);font-size:13px;}
+.field.highlight input{color:var(--blue);font-weight:700;font-family:var(--mono);}
+input[type=number]{appearance:textfield;text-align:right;}
+input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;}
+input[type=date]::-webkit-calendar-picker-indicator{filter:invert(0.2);}
+.field input.editable,.field select.editable{border-color:var(--border);}
+.field input.editing,.field select.editing{background:var(--blue-dim);border-color:var(--blue-mid);box-shadow:0 0 0 3px rgba(1,71,140,.10);}
+.field input::placeholder{color:#b0b8c8;}
+.term-unit-sel{font-size:10px!important;padding:2px 6px!important;border-radius:4px!important;border:1px solid var(--border)!important;background:var(--surface3)!important;cursor:pointer;height:auto!important;width:auto!important;font-family:var(--font)!important;color:var(--blue)!important;font-weight:700!important;}
+/* Checkboxes */
+.chk-group{display:flex;flex-direction:column;gap:5px;margin-top:4px;}
+.chk-row{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--txt);cursor:pointer;user-select:none;padding:4px 8px;border-radius:var(--rad-sm);background:var(--surface3);border:1px solid var(--border);transition:background .1s;}
+.chk-row:hover{background:var(--blue-dim);}
+.chk-row input[type=checkbox]{width:14px;height:14px;accent-color:var(--blue);cursor:pointer;flex-shrink:0;}
+.divider{height:1px;background:var(--border);margin:10px 0;}
+.sect-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:var(--muted);margin-bottom:8px;padding-bottom:5px;border-bottom:1px dashed var(--border2);}
+.pmt-hero{background:linear-gradient(140deg,#0a3a72 0%,#01478c 60%,#0268b8 100%);border-radius:var(--rad);padding:18px 16px;text-align:center;margin-bottom:10px;box-shadow:0 4px 16px rgba(1,71,140,.22);}
+.pmt-hero .label{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,.6);margin-bottom:4px;font-weight:600;}
+.pmt-hero .value{font-family:var(--mono);font-size:34px;font-weight:500;color:#fff;letter-spacing:-1px;line-height:1;}
+.pmt-hero .sub{font-size:11px;color:rgba(255,255,255,.5);margin-top:5px;}
+.result-grid{display:flex;flex-direction:column;gap:3px;}
+.result-row{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;border-radius:var(--rad-sm);background:var(--surface3);transition:background .1s;}
+.result-row:hover{background:var(--blue-dim);}
+.result-row .rl{font-size:11px;color:var(--muted2);}
+.result-row .rv{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--txt);}
+.result-row.key{background:var(--blue-dim);}
+.result-row.key .rl{color:var(--blue);font-weight:700;}
+.result-row.key .rv{color:var(--blue);font-weight:700;font-size:15px;}
+.result-row.sep{background:none;padding:3px 10px 1px;}
+.result-row.sep .rl{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);border-top:1px dashed var(--border2);padding-top:4px;width:100%;}
+.ws-table{width:100%;border-collapse:collapse;}
+.ws-table th{font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);padding:5px 10px;text-align:left;border-bottom:1px solid var(--border);background:var(--surface2);}
+.ws-table td{padding:7px 10px;font-size:12.5px;font-family:var(--mono);font-weight:500;border-bottom:1px solid var(--border);}
+.ws-table tr:last-child td{border-bottom:none;}
+.ws-table td:not(:first-child){text-align:right;}
+.goal-seek-section{background:linear-gradient(135deg,#fffbf0,#fff8e6);border:1px solid #f0d898;border-radius:var(--rad-sm);padding:12px;}
+.gs-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.gs-header .gs-icon{width:26px;height:26px;background:var(--amber);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+.gs-header .gs-title{font-size:11.5px;font-weight:700;color:#7a4e00;}
+.gs-header .gs-sub{font-size:10px;color:#a06820;margin-top:1px;}
+.gs-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:flex-end;}
+/* Contract conditions box */
+.contract-box{background:var(--surface2);border:1px solid var(--border);border-radius:var(--rad-sm);padding:12px;margin-top:10px;}
+.contract-box .cb-title{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+button{font-family:var(--font);cursor:pointer;font-size:13px;font-weight:600;border:none;border-radius:var(--rad-sm);padding:9px 16px;transition:all .15s;white-space:nowrap;display:inline-flex;align-items:center;gap:6px;}
+.btn-primary{background:var(--green);color:#fff;box-shadow:0 1px 3px rgba(34,163,125,.3);}
+.btn-primary:hover{background:#1a8f6c;}
+.btn-blue{background:var(--blue);color:#fff;}
+.btn-blue:hover{background:#003a78;}
+.btn-amber{background:var(--amber);color:#3d2600;}
+.btn-amber:hover{background:#d0900e;}
+.btn-ghost{background:#fff;color:var(--muted2);border:1px solid var(--border);}
+.btn-ghost:hover{color:var(--txt);border-color:var(--border2);background:var(--surface3);}
+.btn-danger{background:var(--red);color:#fff;}
+.btn-danger:hover{background:#a50016;}
+.btn-sm{padding:6px 12px;font-size:12px;}
+.kbd-hint{display:inline-flex;align-items:center;gap:4px;font-size:10px;color:var(--muted);margin-top:7px;}
+.kbd{background:var(--surface3);border:1px solid var(--border2);border-radius:3px;padding:1px 5px;font-family:var(--mono);font-size:10px;color:var(--muted2);}
+#policyWarnings{margin-top:7px;display:flex;gap:6px;flex-wrap:wrap;}
+.pill{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:20px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;}
+.pill.warn{background:var(--amber-dim);color:#8a5000;border:1px solid #f0d090;}
+.pill.err{background:var(--red-dim);color:#8c0018;border:1px solid #f0b0b8;}
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(16px);font-family:var(--font);font-size:13px;padding:10px 18px 10px 14px;border-radius:10px;box-shadow:0 8px 28px rgba(0,0,0,.18);pointer-events:none;opacity:0;transition:all .25s cubic-bezier(.34,1.3,.64,1);z-index:9999;max-width:92vw;text-align:center;display:flex;align-items:center;gap:8px;}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+#toast.success{background:#0d3d22;color:#7eeabc;border:1px solid rgba(110,220,166,.3);}
+#toast.error{background:#3a0810;color:#f7a0aa;border:1px solid rgba(220,60,80,.3);}
+
+/* =====================================================
+   QUOTATION — A4 PREVIEW FIT + PRINT SCALE
+   ===================================================== */
+
+/*
+  Concept
+
+  1. Internal document canvas:
+     - Always true A4: 210mm x 297mm
+
+  2. Screen preview:
+     - Uses --quote-screen-scale
+     - Responsive scale makes preview fit screen
+
+  3. Print:
+     - Uses --quote-print-scale
+     - Default 0.92 to reduce risk of page 2 on Letter
+
+  4. No HTML change required.
+*/
+
+
+/* =====================================================
+   SHARED VARIABLES
+   ===================================================== */
+
+:root{
+  --quote-paper-w:210mm;
+  --quote-paper-h:297mm;
+
+  /*
+    Print scale:
+    0.92 = Letter-safe mode
+    1 = true full A4, but may overflow if printer is Letter
+  */
+  --quote-print-scale:0.90;
+
+  /*
+    Desktop preview scale
+  */
+  --quote-screen-scale:0.90;
+
+  /*
+    Active scale:
+    screen = screen scale
+    print = print scale
+  */
+  --quote-active-scale:var(--quote-screen-scale);
+
+  /*
+    Scaled visual size for desktop preview
+    210mm x 0.92 = 193.2mm
+    297mm x 0.92 = 273.24mm
+  */
+  --quote-view-w:193.2mm;
+  --quote-view-h:273.24mm;
+
+  /*
+    Because transform:scale() does not reduce actual layout box,
+    we pull the unused bottom space back with a negative margin.
+  */
+  --quote-scale-gap-y-neg:-23.76mm;
+}
+
+
+/* =====================================================
+   RESPONSIVE SCREEN PREVIEW SCALE
+   ===================================================== */
+
+@media screen and (max-width:900px){
+  :root{
+    --quote-screen-scale:0.78;
+    --quote-view-w:163.8mm;
+    --quote-view-h:231.66mm;
+    --quote-scale-gap-y-neg:-65.34mm;
+  }
+}
+
+@media screen and (max-width:760px){
+  :root{
+    --quote-screen-scale:0.68;
+    --quote-view-w:142.8mm;
+    --quote-view-h:201.96mm;
+    --quote-scale-gap-y-neg:-95.04mm;
+  }
+}
+
+@media screen and (max-width:620px){
+  :root{
+    --quote-screen-scale:0.56;
+    --quote-view-w:117.6mm;
+    --quote-view-h:166.32mm;
+    --quote-scale-gap-y-neg:-130.68mm;
+  }
+}
+
+@media screen and (max-width:480px){
+  :root{
+    --quote-screen-scale:0.46;
+    --quote-view-w:96.6mm;
+    --quote-view-h:136.62mm;
+    --quote-scale-gap-y-neg:-160.38mm;
+  }
+}
+
+@media screen and (max-width:390px){
+  :root{
+    --quote-screen-scale:0.40;
+    --quote-view-w:84mm;
+    --quote-view-h:118.8mm;
+    --quote-scale-gap-y-neg:-178.2mm;
+  }
+}
+
+
+/* =====================================================
+   OUTER PREVIEW WRAPPER
+   ===================================================== */
+
+.quote-section-outer{
+  margin-top:28px;
+
+  background:#c8cbd2;
+  border-radius:6px;
+
+  padding:28px 20px 32px;
+
+  overflow:auto;
+}
+
+@media screen and (max-width:620px){
+  .quote-section-outer{
+    padding:18px 10px 24px;
+  }
+}
+
+@media screen and (max-width:480px){
+  .quote-section-outer{
+    padding:14px 8px 20px;
+  }
+}
+
+
+/* =====================================================
+   CONTROLS BAR
+   ===================================================== */
+
+.quote-controls{
+  display:flex;
+  align-items:center;
+  gap:10px;
+
+  padding:8px 12px 14px;
+
+  font-size:12px;
+  color:var(--muted2);
+}
+
+.quote-controls label{
+  font-weight:600;
+}
+
+.quote-controls select{
+  padding:4px 8px;
+
+  border:1px solid var(--border);
+  border-radius:var(--rad-sm);
+
+  font-size:12px;
+  font-family:var(--font);
+
+  background:#fff;
+
+  cursor:pointer;
+}
+
+.quote-controls .spacer{
+  flex:1;
+}
+
+
+/* =====================================================
+   A4 PAPER CANVAS
+   ===================================================== */
+
+.quote-wrap{
+  width:var(--quote-paper-w);
+  height:var(--quote-paper-h);
+
+  min-width:var(--quote-paper-w);
+  max-width:var(--quote-paper-w);
+
+  min-height:var(--quote-paper-h);
+  max-height:var(--quote-paper-h);
+
+  /*
+    Use separate margin sides.
+    Do not use shorthand margin here, otherwise margin-bottom compensation can break.
+  */
+  margin-top:6mm !important;
+  margin-right:auto !important;
+  margin-left:auto !important;
+  margin-bottom:var(--quote-scale-gap-y-neg) !important;
+
+  background:#fff;
+
+  border:1px solid #b0b4bc;
+  border-radius:2px;
+
+  overflow:hidden;
+
+  box-shadow:
+    0 1px 2px rgba(0,0,0,.08),
+    0 4px 12px rgba(0,0,0,.12),
+    0 12px 32px rgba(0,0,0,.10),
+    0 24px 56px rgba(0,0,0,.07);
+
+  font-family:Calibri,Arial,sans-serif;
+
+  position:relative;
+
+  aspect-ratio:auto;
+
+  transform:scale(var(--quote-active-scale));
+  transform-origin:top center;
+}
+
+
+/* =====================================================
+   INNER PAGE
+   ===================================================== */
+
+.q-page{
+  width:100%;
+  height:100%;
+
+  position:absolute;
+  top:0;
+  left:0;
+
+  /*
+    Inner margin of the quotation content.
+    Top increased slightly, bottom reduced slightly.
+  */
+  padding:3.2% 3.2% 2.0%;
+
+  background:#fff;
+
+  font-size:11.5px;
+  line-height:1.65;
+
+  color:#111;
+
+  font-family:Calibri,Arial,sans-serif;
+
+  display:flex;
+  flex-direction:column;
+}
+
+
+/* =====================================================
+   BODY / SPACERS
+   ===================================================== */
+
+.q-body{
+  flex:1 1 auto;
+
+  display:flex;
+  flex-direction:column;
+
+  min-height:0;
+}
+
+.q-sp{
+  flex:1;
+  min-height:0;
+}
+
+.q-sp-lg{
+  flex:0.5;
+  min-height:0;
+}
+
+
+/* =====================================================
+   HEADER
+   ===================================================== */
+
+.q-hdr{
+  display:grid;
+  grid-template-columns:98px 1fr auto;
+  align-items:flex-start;
+
+  padding-bottom:7px;
+
+  border-bottom:2px solid #111;
+}
+
+.q-hdr-logo img{
+  height:60px;
+  width:auto;
+  display:block;
+}
+
+.q-hdr-company{
+  padding-left:12px;
+}
+
+.q-co-name{
+  font-size:15px;
+  font-weight:700;
+  color:#111;
+  line-height:1.2;
+  margin-bottom:4px;
+}
+
+.q-addr-cols{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:0 12px;
+
+  font-size:9.5px;
+  color:#333;
+  line-height:1.6;
+}
+
+.q-addr-title{
+  font-weight:700;
+  color:#111;
+  font-size:9.5px;
+}
+
+.q-hdr-right{
+  text-align:right;
+  min-width:140px;
+}
+
+.q-doctype{
+  font-size:30px;
+  font-weight:700;
+  color:#111;
+  letter-spacing:1px;
+  line-height:1;
+}
+
+.q-docsub{
+  font-size:13px;
+  font-weight:600;
+  color:#444;
+  text-align:right;
+  margin-top:3px;
+}
+
+
+/* =====================================================
+   INFO ROW
+   ===================================================== */
+
+.q-inforow{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+
+  padding:8px 0 7px;
+
+  border-bottom:1px solid #ccc;
+
+  font-size:10.5px;
+}
+
+.q-infocell{
+  display:flex;
+  gap:4px;
+  align-items:baseline;
+}
+
+.q-infocell .qi-label{
+  color:#444;
+  white-space:nowrap;
+}
+
+.q-infocell .qi-val{
+  font-weight:700;
+  color:#111;
+}
+
+.q-docinfo{
+  font-size:10px;
+  color:#333;
+  line-height:1.8;
+}
+
+.q-docinfo .di-row{
+  display:flex;
+  gap:4px;
+}
+
+.q-docinfo .di-k{
+  min-width:118px;
+  color:#444;
+}
+
+.q-docinfo .di-v{
+  font-weight:600;
+  color:#111;
+}
+
+.q-intro{
+  font-size:10.5px;
+  color:#333;
+  line-height:1.6;
+}
+
+.q-baht-label{
+  text-align:right;
+  font-size:9.5px;
+  color:#555;
+  margin-bottom:3px;
+}
+
+
+/* =====================================================
+   MAIN TABLE
+   ===================================================== */
+
+.q-tbl{
+  width:100%;
+  border-collapse:collapse;
+  border:1px solid #999;
+
+  font-size:10px;
+}
+
+.q-tbl thead th{
+  background:#e6ecf4;
+  border:1px solid #999;
+
+  padding:7px 4px;
+
+  font-weight:700;
+  text-align:center;
+  vertical-align:middle;
+
+  font-size:9.5px;
+  line-height:1.4;
+  color:#111;
+}
+
+.q-tbl tbody td{
+  border:1px solid #ccc;
+
+  padding:9px 4px;
+
+  vertical-align:middle;
+
+  font-size:10.5px;
+  color:#111;
+}
+
+.q-tbl td.num{
+  text-align:right;
+  font-family:Calibri,Consolas,monospace;
+  font-size:10px;
+}
+
+.q-tbl td.ctr{
+  text-align:center;
+}
+
+
+/* =====================================================
+   RATE BOX
+   ===================================================== */
+
+.q-ratebox{
+  border:1px solid #999;
+}
+
+.q-ratebox table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:10px;
+}
+
+.q-ratebox table td{
+  padding:6px 10px;
+  vertical-align:middle;
+}
+
+.rb-key{
+  color:#333;
+  white-space:nowrap;
+  width:122px;
+}
+
+.rb-sep{
+  width:10px;
+  text-align:center;
+  color:#555;
+}
+
+.rb-val{
+  color:#111;
+}
+
+.rb-gap{
+  width:18px;
+}
+
+
+/* =====================================================
+   TERMS
+   ===================================================== */
+
+.q-subject{
+  font-size:10.5px;
+  font-weight:700;
+  color:#111;
+}
+
+.q-terms-hdr{
+  font-size:10.5px;
+  font-weight:700;
+  text-decoration:underline;
+  color:#111;
+  margin-bottom:4px;
+}
+
+.q-terms ol{
+  padding-left:15px;
+  font-size:10.5px;
+  color:#222;
+  line-height:1.7;
+}
+
+.q-terms li{
+  margin-bottom:7px;
+}
+
+.q-terms ul{
+  padding-left:15px;
+  margin-top:4px;
+}
+
+.q-terms ul li{
+  margin-bottom:3px;
+}
+
+
+/* =====================================================
+   SIGNATURE
+   ===================================================== */
+
+.q-sign{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:40px;
+
+  border-top:1.5px solid #999;
+  padding-top:6px;
+
+  break-inside:avoid;
+  page-break-inside:avoid;
+}
+
+.q-sign-col{
+  display:flex;
+  flex-direction:column;
+  min-height:95px;
+}
+
+/*
+  Equal height intro:
+  keeps PANUTDA and Customer signature lines aligned.
+*/
+.q-sign-intro{
+  height:34px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  font-size:9.5px;
+  color:#000;
+  line-height:1.45;
+
+  white-space:pre-line;
+  text-align:center;
+
+  margin-bottom:4px;
+
+  font-weight:600;
+}
+
+/*
+  Fixed spacer:
+  do not use flex:1 here, otherwise left/right lines can become uneven.
+*/
+.q-sign-spacer{
+  flex:0 0 50px;
+  height:50px;
+  min-height:50px;
+}
+
+.q-sign-line{
+  border-top:1px solid #000;
+  width:100%;
+  margin-bottom:4px;
+}
+
+.q-sign-name-block{
+  text-align:center;
+  line-height:1.35;
+}
+
+.q-sign-name{
+  font-size:10.5px;
+  font-weight:700;
+  color:#000;
+}
+
+.q-sign-role{
+  font-size:9px;
+  color:#333;
+}
+
+.q-sign-row{
+  font-size:9.5px;
+  color:#000;
+
+  display:flex;
+  gap:8px;
+  align-items:baseline;
+
+  margin-top:2px;
+}
+
+.q-sign-row .sk{
+  min-width:62px;
+  color:#333;
+  font-weight:600;
+}
+
+.q-sign-row .sv{
+  font-weight:700;
+  color:#000;
+}
+
+
+/* =====================================================
+   FOOTER WITH QR CODE
+   ===================================================== */
+
+.q-footer{
+  display:flex;
+  align-items:center;
+  gap:12px;
+
+  width:100%;
+
+  border-top:0.5px solid #ddd;
+
+  padding-top:4px;
+  margin-top:12px;
+
+  font-size:10px;
+
+  break-inside:avoid;
+  page-break-inside:avoid;
+}
+
+.q-footer-qr{
+  flex:0 0 80px;
+
+  width:80px;
+  height:80px;
+
+  min-width:80px;
+  max-width:80px;
+
+  min-height:80px;
+  max-height:80px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  overflow:hidden;
+}
+
+.q-footer-qrbox{
+  width:80px;
+  height:80px;
+
+  min-width:80px;
+  max-width:80px;
+
+  min-height:80px;
+  max-height:80px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  flex:none;
+
+  overflow:hidden;
+}
+
+.q-footer-qr-image,
+.q-footer-qr img,
+.q-footer-qrbox img{
+  display:block;
+
+  width:80px;
+  height:80px;
+
+  min-width:80px;
+  max-width:80px;
+
+  min-height:80px;
+  max-height:80px;
+
+  object-fit:contain;
+}
+
+.q-footer-text{
+  flex:1 1 auto;
+
+  min-height:80px;
+
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+
+  font-size:10px;
+  line-height:1.4;
+
+  color:#333;
+  text-align:justify;
+}
+
+.q-footer-text p,
+.q-footer-text div{
+  margin:0;
+}
+
+.q-footer-text a{
+  color:#0066cc;
+  text-decoration:none;
+}
+
+.q-footer-pagenum{
+  flex:0 0 auto;
+
+  min-height:80px;
+
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+
+  white-space:nowrap;
+
+  font-size:10px;
+  color:#666;
+  font-weight:600;
+  text-align:right;
+}
+
+.hidden{
+  display:none !important;
+}
+
+
+/* =====================================================
+   PRINT — MOBILE SAFE / DESKTOP SAFE
+   ===================================================== */
+
+@page{
+  size:210mm 297mm;
+  margin:0;
+}
+
+@media print{
+
+  :root{
+    --quote-paper-w:210mm;
+    --quote-paper-h:297mm;
+
+    --quote-print-scale:0.90;
+    --quote-active-scale:0.90;
+
+    --quote-view-w:193.2mm;
+    --quote-view-h:273.24mm;
+
+    --quote-scale-gap-y-neg:-23.76mm;
+  }
+
+
+  html,
+  body{
+    width:210mm !important;
+    height:297mm !important;
+
+    min-width:210mm !important;
+    max-width:210mm !important;
+
+    min-height:297mm !important;
+    max-height:297mm !important;
+
+    margin:0 !important;
+    padding:0 !important;
+
+    background:#fff !important;
+
+    overflow:hidden !important;
+
+    font-family:Calibri, Arial, sans-serif !important;
+
+    -webkit-print-color-adjust:exact !important;
+    print-color-adjust:exact !important;
+  }
+
+
+  .no-print,
+  #toast,
+  .quote-controls,
+  .page-header,
+  .grid-main,
+  .btn-row{
+    display:none !important;
+  }
+
+
+  .app{
+    width:210mm !important;
+    height:297mm !important;
+
+    min-width:210mm !important;
+    max-width:210mm !important;
+
+    min-height:297mm !important;
+    max-height:297mm !important;
+
+    margin:0 !important;
+    padding:0 !important;
+
+    overflow:hidden !important;
+  }
+
+
+  /*
+    Final visible print viewport after scaling.
+    Top margin moves the whole document down slightly.
+  */
+  .quote-section-outer{
+    width:193.2mm !important;
+    height:273.24mm !important;
+
+    min-width:193.2mm !important;
+    max-width:193.2mm !important;
+
+    min-height:273.24mm !important;
+    max-height:273.24mm !important;
+
+    margin:6mm auto 0 !important;
+    padding:0 !important;
+
+    background:#fff !important;
+    border-radius:0 !important;
+
+    overflow:hidden !important;
+  }
+
+
+  /*
+    True A4 canvas inside print viewport.
+  */
+  .quote-wrap{
+    width:210mm !important;
+    height:297mm !important;
+
+    min-width:210mm !important;
+    max-width:210mm !important;
+
+    min-height:297mm !important;
+    max-height:297mm !important;
+
+    margin:0 !important;
+    padding:0 !important;
+
+    background:#fff !important;
+
+    border:none !important;
+    border-radius:0 !important;
+    box-shadow:none !important;
+
+    overflow:hidden !important;
+
+    aspect-ratio:auto !important;
+
+    position:relative !important;
+
+    transform:scale(0.92) !important;
+    transform-origin:top left !important;
+  }
+
+
+  .q-page{
+    width:100% !important;
+    height:100% !important;
+
+    position:absolute !important;
+    top:0 !important;
+    left:0 !important;
+
+    padding:3.2% 3.2% 2.0% !important;
+
+    margin:0 !important;
+
+    background:#fff !important;
+    color:#111 !important;
+
+    font-family:Calibri, Arial, sans-serif !important;
+
+    font-size:11.5px !important;
+    line-height:1.65 !important;
+
+    display:flex !important;
+    flex-direction:column !important;
+
+    overflow:hidden !important;
+  }
+
+
+  .q-body{
+    flex:1 1 auto !important;
+
+    display:flex !important;
+    flex-direction:column !important;
+
+    min-height:0 !important;
+    overflow:hidden !important;
+  }
+
+  .q-sp{
+    flex:1 !important;
+    min-height:0 !important;
+  }
+
+  .q-sp-lg{
+    flex:0.5 !important;
+    min-height:0 !important;
+  }
+
+
+  img{
+    max-width:none !important;
+  }
+
+  .q-hdr-logo img{
+    width:auto !important;
+    height:60px !important;
+    display:block !important;
+  }
+
+
+  .q-tbl{
+    width:100% !important;
+    border-collapse:collapse !important;
+    table-layout:auto !important;
+  }
+
+  .q-tbl th,
+  .q-tbl td{
+    page-break-inside:avoid !important;
+    break-inside:avoid !important;
+  }
+
+
+  /*
+    Signature print layout
+  */
+  .q-sign{
+    display:grid !important;
+    grid-template-columns:1fr 1fr !important;
+    gap:40px !important;
+
+    border-top:1.5px solid #999 !important;
+    padding-top:6px !important;
+
+    page-break-inside:avoid !important;
+    break-inside:avoid !important;
+  }
+
+  .q-sign-col{
+    display:flex !important;
+    flex-direction:column !important;
+
+    min-height:95px !important;
+  }
+
+  .q-sign-intro{
+    height:34px !important;
+
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+
+    font-size:9.5px !important;
+    line-height:1.45 !important;
+
+    white-space:pre-line !important;
+    text-align:center !important;
+
+    margin-bottom:4px !important;
+
+    font-weight:600 !important;
+  }
+
+  .q-sign-spacer{
+    flex:0 0 50px !important;
+    height:50px !important;
+    min-height:50px !important;
+  }
+
+  .q-sign-line{
+    border-top:1px solid #000 !important;
+    width:100% !important;
+    margin-bottom:4px !important;
+  }
+
+  .q-sign-name-block{
+    text-align:center !important;
+    line-height:1.35 !important;
+  }
+
+  .q-sign-name{
+    font-size:10.5px !important;
+    font-weight:700 !important;
+    color:#000 !important;
+  }
+
+  .q-sign-role{
+    font-size:9px !important;
+    color:#333 !important;
+  }
+
+  .q-sign-row{
+    font-size:9.5px !important;
+    color:#000 !important;
+
+    display:flex !important;
+    gap:8px !important;
+    align-items:baseline !important;
+
+    margin-top:2px !important;
+  }
+
+  .q-sign-row .sk{
+    min-width:62px !important;
+    color:#333 !important;
+    font-weight:600 !important;
+  }
+
+  .q-sign-row .sv{
+    font-weight:700 !important;
+    color:#000 !important;
+  }
+
+
+  /*
+    Footer print layout
+  */
+  .q-footer{
+    display:flex !important;
+    align-items:center !important;
+    gap:12px !important;
+
+    width:100% !important;
+
+    margin-top:12px !important;
+    padding-top:4px !important;
+
+    border-top:0.5px solid #ddd !important;
+
+    font-size:10px !important;
+
+    page-break-inside:avoid !important;
+    break-inside:avoid !important;
+  }
+
+  .q-footer-qr{
+    flex:0 0 80px !important;
+
+    width:80px !important;
+    height:80px !important;
+
+    min-width:80px !important;
+    max-width:80px !important;
+
+    min-height:80px !important;
+    max-height:80px !important;
+
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+
+    overflow:hidden !important;
+  }
+
+  .q-footer-qrbox{
+    width:80px !important;
+    height:80px !important;
+
+    min-width:80px !important;
+    max-width:80px !important;
+
+    min-height:80px !important;
+    max-height:80px !important;
+
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+
+    flex:none !important;
+
+    overflow:hidden !important;
+  }
+
+  .q-footer-qr-image,
+  .q-footer-qr img,
+  .q-footer-qrbox img{
+    display:block !important;
+
+    width:80px !important;
+    height:80px !important;
+
+    min-width:80px !important;
+    max-width:80px !important;
+
+    min-height:80px !important;
+    max-height:80px !important;
+
+    object-fit:contain !important;
+  }
+
+  .q-footer-text{
+    flex:1 1 auto !important;
+
+    min-height:80px !important;
+
+    display:flex !important;
+    flex-direction:column !important;
+    justify-content:center !important;
+
+    font-size:10px !important;
+    line-height:1.4 !important;
+
+    color:#333 !important;
+    text-align:justify !important;
+  }
+
+  .q-footer-text p,
+  .q-footer-text div{
+    margin:0 !important;
+  }
+
+  .q-footer-text a{
+    color:#0066cc !important;
+    text-decoration:none !important;
+  }
+
+  .q-footer-pagenum{
+    flex:0 0 auto !important;
+
+    min-height:80px !important;
+
+    display:flex !important;
+    align-items:center !important;
+    justify-content:flex-end !important;
+
+    white-space:nowrap !important;
+
+    font-size:10px !important;
+    color:#666 !important;
+    font-weight:600 !important;
+    text-align:right !important;
+  }
+
+
+  table,
+  thead,
+  tbody,
+  tr,
+  td,
+  th,
+  .q-ratebox,
+  .q-terms,
+  .q-sign,
+  .q-footer{
+    page-break-inside:avoid !important;
+    break-inside:avoid !important;
+  }
+}
