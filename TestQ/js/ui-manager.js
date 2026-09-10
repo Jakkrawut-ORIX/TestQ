@@ -48,7 +48,7 @@ export class UIManager {
       balloonType: getVal('balloonType') || 'amount',
       balloonInput: getVal('balloonInput'),
       mode: getVal('mode') || 'Flat',
-      flatRate: getVal('flatRate'),
+      flatRate: getVal('flatRate')/100,
       irrTargetPct: getVal('irrTargetPct'),
       commBaseChoice: getVal('commBaseChoice') || 'finance',
       commPct: getVal('commPct'),
